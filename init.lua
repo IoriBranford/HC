@@ -42,6 +42,7 @@ local newPointShape = Shapes.newPointShape
 
 local HC = {}
 function HC:init(cell_size)
+    self.createdShapes = {} -- cache of created shapes
     self:resetHash(cell_size)
 end
 
@@ -55,8 +56,18 @@ function HC:resetHash(cell_size)
     return self
 end
 
+function HC:removeAll()
+    for shape in pairs(self.createdShapes) do
+        self:remove(shape)
+    end
+end
+
 function HC:register(shape)
+    print('register', shape)
     self._hash:register(shape, shape:bbox())
+
+    -- add to cache
+    self.createdShapes[shape] = true
 
     -- keep track of where/how big the shape is
     for _, f in ipairs({'move', 'rotate', 'scale'}) do
@@ -73,7 +84,12 @@ function HC:register(shape)
 end
 
 function HC:remove(shape)
+    print('remove', shape)
     self._hash:remove(shape, shape:bbox())
+
+    -- remove from cache
+    self.createdShapes[shape] = nil
+
     for _, f in ipairs({'move', 'rotate', 'scale'}) do
         shape[f] = function()
             error(f .. "() called on a removed shape")
@@ -151,6 +167,9 @@ return setmetatable({
     end,
     remove = function(...)
         return instance:remove(...)
+    end,
+    removeAll = function(...)
+        return instance:removeAll(...)
     end,
 
     polygon = function(...)
