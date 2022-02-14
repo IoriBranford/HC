@@ -63,7 +63,6 @@ function HC:removeAll()
 end
 
 function HC:register(shape)
-    print('register', shape)
     self._hash:register(shape, shape:bbox())
 
     -- add to cache
@@ -84,7 +83,6 @@ function HC:register(shape)
 end
 
 function HC:remove(shape)
-    print('remove', shape)
     self._hash:remove(shape, shape:bbox())
 
     -- remove from cache
