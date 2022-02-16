@@ -24,12 +24,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ]] --
 local _NAME, common_local = ..., common
-if not (type(common) == 'table' and common.class and common.instance) then
-    assert(common_class ~= false, 'No class commons specification available.')
-    require(_NAME .. '.class')
+if not (type(common) == "table" and common.class and common.instance) then
+    assert(common_class ~= false, "No class commons specification available.")
+    require(_NAME .. ".class")
 end
-local Shapes = require(_NAME .. '.shapes')
-local Spatialhash = require(_NAME .. '.spatialhash')
+local Shapes = require(_NAME .. ".shapes")
+local Spatialhash = require(_NAME .. ".spatialhash")
 
 -- reset global table `common' (required by class commons)
 if common_local ~= common then
@@ -69,16 +69,21 @@ function HC:register(shape)
     self.createdShapes[shape] = true
 
     -- keep track of where/how big the shape is
-    for _, f in ipairs({'move', 'rotate', 'scale'}) do
-        local old_function = shape[f]
+    for _, f in ipairs({"move", "rotate", "scale"}) do
+        if shape["orig" .. f] == nil then
+            -- print("added ", "orig" .. f, " to ", shape)
+            shape["orig" .. f] = shape[f]
+        else
+            -- print("didn't add ", "orig" .. f, " to ", shape)
+        end
+
         shape[f] = function(this, ...)
             local x1, y1, x2, y2 = this:bbox()
-            old_function(this, ...)
+            shape["orig" .. f](this, ...)
             self._hash:update(this, x1, y1, x2, y2, this:bbox())
             return this
         end
     end
-
     return shape
 end
 
@@ -88,11 +93,12 @@ function HC:remove(shape)
     -- remove from cache
     self.createdShapes[shape] = nil
 
-    for _, f in ipairs({'move', 'rotate', 'scale'}) do
+    for _, f in ipairs({"move", "rotate", "scale"}) do
         shape[f] = function()
             error(f .. "() called on a removed shape")
         end
     end
+
     return self
 end
 
@@ -125,12 +131,16 @@ function HC:collisions(shape)
     for other in pairs(candidates) do
         local collides, dx, dy = shape:collidesWith(other)
         if collides then
-            rawset(candidates, other, {
-                dx,
-                dy,
-                x = dx,
-                y = dy
-            })
+            rawset(
+                candidates,
+                other,
+                {
+                    dx,
+                    dy,
+                    x = dx,
+                    y = dy
+                }
+            )
         else
             rawset(candidates, other, nil)
         end
@@ -149,54 +159,55 @@ function HC:shapesAt(x, y)
 end
 
 -- the class and the instance
-HC = common_local.class('HardonCollider', HC)
+HC = common_local.class("HardonCollider", HC)
 local instance = common_local.instance(HC)
 
 -- the module
-return setmetatable({
-    new = function(...)
-        return common_local.instance(HC, ...)
-    end,
-    resetHash = function(...)
-        return instance:resetHash(...)
-    end,
-    register = function(...)
-        return instance:register(...)
-    end,
-    remove = function(...)
-        return instance:remove(...)
-    end,
-    removeAll = function(...)
-        return instance:removeAll(...)
-    end,
-
-    polygon = function(...)
-        return instance:polygon(...)
-    end,
-    rectangle = function(...)
-        return instance:rectangle(...)
-    end,
-    circle = function(...)
-        return instance:circle(...)
-    end,
-    point = function(...)
-        return instance:point(...)
-    end,
-
-    neighbors = function(...)
-        return instance:neighbors(...)
-    end,
-    collisions = function(...)
-        return instance:collisions(...)
-    end,
-    shapesAt = function(...)
-        return instance:shapesAt(...)
-    end,
-    hash = function()
-        return instance:hash()
-    end
-}, {
-    __call = function(_, ...)
-        return common_local.instance(HC, ...)
-    end
-})
+return setmetatable(
+    {
+        new = function(...)
+            return common_local.instance(HC, ...)
+        end,
+        resetHash = function(...)
+            return instance:resetHash(...)
+        end,
+        register = function(...)
+            return instance:register(...)
+        end,
+        remove = function(...)
+            return instance:remove(...)
+        end,
+        removeAll = function(...)
+            return instance:removeAll(...)
+        end,
+        polygon = function(...)
+            return instance:polygon(...)
+        end,
+        rectangle = function(...)
+            return instance:rectangle(...)
+        end,
+        circle = function(...)
+            return instance:circle(...)
+        end,
+        point = function(...)
+            return instance:point(...)
+        end,
+        neighbors = function(...)
+            return instance:neighbors(...)
+        end,
+        collisions = function(...)
+            return instance:collisions(...)
+        end,
+        shapesAt = function(...)
+            return instance:shapesAt(...)
+        end,
+        hash = function()
+            return instance:hash()
+        end
+    },
+    {
+        __call = function(_, ...)
+            return common_local.instance(HC, ...)
+        end
+    }
+)
