@@ -69,7 +69,12 @@ function HC:register(shape)
     self.createdShapes[shape] = true
 
     -- keep track of where/how big the shape is
-    for _, f in ipairs({"move", "rotate", "scale"}) do
+    for _, f in ipairs(
+        {
+            "move",
+            "rotate",
+            "scale",
+        }) do
         if shape["orig" .. f] == nil then
             -- print("added ", "orig" .. f, " to ", shape)
             shape["orig" .. f] = shape[f]
@@ -93,7 +98,12 @@ function HC:remove(shape)
     -- remove from cache
     self.createdShapes[shape] = nil
 
-    for _, f in ipairs({"move", "rotate", "scale"}) do
+    for _, f in ipairs(
+        {
+            "move",
+            "rotate",
+            "scale",
+        }) do
         shape[f] = function()
             error(f .. "() called on a removed shape")
         end
@@ -132,15 +142,12 @@ function HC:collisions(shape)
         local collides, dx, dy = shape:collidesWith(other)
         if collides then
             rawset(
-                candidates,
-                other,
-                {
+                candidates, other, {
                     dx,
                     dy,
                     x = dx,
-                    y = dy
-                }
-            )
+                    y = dy,
+                })
         else
             rawset(candidates, other, nil)
         end
@@ -203,11 +210,9 @@ return setmetatable(
         end,
         hash = function()
             return instance:hash()
-        end
-    },
-    {
+        end,
+    }, {
         __call = function(_, ...)
             return common_local.instance(HC, ...)
-        end
-    }
-)
+        end,
+    })
