@@ -229,6 +229,9 @@ return setmetatable(
         collisions = function(...)
             return instance:collisions(...)
         end,
+        raycast = function(...)
+            return instance:raycast(...)
+        end,
         shapesAt = function(...)
             return instance:shapesAt(...)
         end,
